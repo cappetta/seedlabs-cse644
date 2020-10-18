@@ -23,6 +23,6 @@ for hop in hops:
 	print(str(i) + " " + hop)
 	i+=1
  
-# ans, unans = sr(IP(dst="www.google.com/30", ttl=(1,2))/TCP())
-# ans.make_table( lambda s,r: (s.dst, s.ttl, r.src) )
+ans, unans = sr(IP(dst="www.google.com/30", ttl=(1,2))/TCP())
+ans.make_table( lambda s,r: (s.dst, s.ttl, r.src) )
 print('exiting...')
