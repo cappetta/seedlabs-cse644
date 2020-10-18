@@ -1,3 +1,7 @@
 *.o
 *.out
 *.ko
+*.pdf
+*.docx
+*tar.gz
+
