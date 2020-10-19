@@ -3,6 +3,7 @@ from scapy.all import *
 def print_pkt(pkt):
     p = copy.deepcopy(pkt[IP])
     p.src = pkt[IP].dst
+    #p.src = '1.1.1.1'
     p.dst = pkt[IP].src
     p[ICMP].type = 0
     send(p)
