@@ -1,3 +1,5 @@
+# reproducing sample lab report code
+# reference: https://github.com/Avigdor-Kolonimus/SEED-labs/blob/master/Sniffing%20and%20Spoofing/SnifAndSpoof.py
 from scapy.all import * 
 
 def print_pkt(pkt):
