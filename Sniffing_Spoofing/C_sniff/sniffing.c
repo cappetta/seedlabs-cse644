@@ -22,13 +22,16 @@ int main()
     char        errbuf[ETHER_ADDR_LEN];             // error buffer
     struct      bpf_program     fp;                 // compiled filter program (expression)
     char        filter_exp[] = "ip proto \\icmp";   // filter expression
+    char        filter_exp[] = "proto \\TCP and dst portrange 20-100";   // filter expression
     bpf_u_int32 net;                                // IP
+
     // 1. Open live pcap session on NIC with interface name
     handle = pcap_open_live("ens33", SNAP_LEN, 1, 1000, errbuf);
     if (handle == NULL) {
         printf("Could not open device : %s\n", errbuf);
         exit(EXIT_FAILURE);
     }
+    
     // 2. Compile filter_exp into BPF pseudo-code
     if (pcap_compile(handle, &fp, filter_exp, 0, net) == PCAP_ERROR) {
         printf("Could not parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
@@ -38,6 +41,7 @@ int main()
         printf("Could not install filter %s: %s\n", filter_exp, pcap_geterr(handle));
         exit(EXIT_FAILURE);
     }
+    
     // 3. Capture packets
     pcap_loop(handle, -1, got_packet, NULL);
     pcap_close(handle);     // Close the handle
