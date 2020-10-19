@@ -14,6 +14,7 @@
 // Ethernet addresses are 6 bytes
 #define ETHER_ADDR_LEN  6
 #define ETHER_IPV4      0x800
+
 void got_packet(u_char *args, const struct pcap_pkthdr *hander, const u_char *packet);
 int main()
 {
@@ -42,12 +43,14 @@ int main()
     pcap_close(handle);     // Close the handle
     return 0;
 }
+
 // Ethernet header
 typedef struct sniff_ethernet {
         uint8_t  ether_dhost[ETHER_ADDR_LEN];   // destination host address
         uint8_t  ether_shost[ETHER_ADDR_LEN];   // source host address
         uint16_t ether_type;                    // protocol type (IP, ARP, RARP, etc)
 } sniff_ethernet;
+
 // IP header
 typedef struct sniff_ip {
     uint8_t     ip_vhl:4,               // IP header length
@@ -66,8 +69,10 @@ typedef struct sniff_ip {
     uint16_t    ip_chksum;              // checksum
     struct  in_addr ip_src,ip_dst;      // source and dest address
 } sniff_ip;
+
 #define IP_HL(ip)               (((ip)->ip_vhl) & 0x0f)
 #define IP_V(ip)                (((ip)->ip_vhl) >> 4)
+
 // TCP header
 typedef struct sniff_tcp {
     uint16_t    tcp_srcport;            // source port
@@ -90,6 +95,7 @@ typedef struct sniff_tcp {
     uint16_t    tcp_chksum;             // checksum
     uint16_t    tcp_urp;                // urgent pointer
 } sniff_tcp;
+
 void got_packet(u_char *args, const struct pcap_pkthdr *hander, const u_char *packet)
 {
     static uint32_t count = 1;          // packet counter
@@ -115,4 +121,28 @@ void got_packet(u_char *args, const struct pcap_pkthdr *hander, const u_char *pa
         printf("              From: %s\n", inet_ntoa(ip->ip_src));
         printf("                To: %s\n", inet_ntoa(ip->ip_dst));
     }
+       // Add following code to got_packet() function
+        tcp = (sniff_tcp *)(packet + sizeof(sniff_ethernet) + sizeIp);
+        sizeTcp = TCP_OFF(tcp) * 4;
+        if ( sizeTcp < 20){
+            printf("Invalid TCP header length: %u bytes", sizeTcp);
+            return;
+        }
+        printf("       Source Port: %d\n", ntohs(tcp->tcp_srcport));
+        printf("  Destination Port: %d\n", ntohs(tcp->tcp_dstport));
+        switch (ip->ip_protocol){
+            case IPPROTO_ICMP:
+                printf("          Protocol: ICMP\n");
+                break;
+            case IPPROTO_TCP:
+                printf("          Protocol: TCP\n");
+                break;
+            case IPPROTO_UDP:
+                printf("          Protocol: UDP\n");
+                break;
+            case IPPROTO_IP:
+                printf("          Protocol: IP\n");
+                break;            default:
+                printf("          Protocol: Others\n");
+        }
 }
