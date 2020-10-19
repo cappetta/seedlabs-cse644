@@ -16,6 +16,9 @@
 #define ETHER_IPV4      0x800
 
 void got_packet(u_char *args, const struct pcap_pkthdr *hander, const u_char *packet);
+void print_hex_ascii_line(const uint8_t *payload, int len, int offset);
+void print_payload(const uint8_t *payload, int len);
+
 int main()
 {
     pcap_t      *handle;                            // packet capture handle
@@ -113,6 +116,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *hander, const u_char *pa
     uint8_t         *payload;           // Packet payload
     printf("Got a packet (%d):\n", count);
     count++;
+
     // Define Ethernet header
     eth = (sniff_ethernet *) packet;
     if (ntohs(eth->ether_type) == ETHER_IPV4) {
@@ -128,6 +132,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *hander, const u_char *pa
        // Add following code to got_packet() function
         tcp = (sniff_tcp *)(packet + sizeof(sniff_ethernet) + sizeIp);
         sizeTcp = TCP_OFF(tcp) * 4;
+
         if ( sizeTcp < 20){
             printf("Invalid TCP header length: %u bytes", sizeTcp);
             return;
@@ -149,4 +154,83 @@ void got_packet(u_char *args, const struct pcap_pkthdr *hander, const u_char *pa
                 break;            default:
                 printf("          Protocol: Others\n");
         }
+        
+        // define/compute tcp payload (segment) offset
+        payload = (uint8_t *)(packet + sizeof(sniff_ethernet) + sizeIp + sizeTcp);
+        // compute tcp payload (segment) size
+        sizePayload = ntohs(ip->ip_len) - (sizeIp + sizeTcp);
+        // Print payload data; it might be binary, so don't just treat it as a string.
+        if (sizePayload > 0) {
+            printf("          Payload: %d bytes\n", sizePayload);
+            print_payload(payload, sizePayload);
+        }
+}
+
+// print data in rows of 16 bytes: offset   hex   ASCII
+// 00000   47 45 54 20 2f 20 48 54  54 50 2f 31 2e 31 0d 0a   GET / HTTP/1.1..
+void print_hex_ascii_line(const uint8_t *payload, int len, int offset)
+{
+    int     i;
+    int     gap;
+    const uint8_t *ch;
+    // offset
+    printf("    %05d   ", offset);
+    // hex
+    ch = payload;
+    for(i = 0; i < len; i++) {
+        printf("%02x ", *ch);
+        ch++;
+        // print extra space after 8th byte for visual aid
+        if (i == 7) printf(" ");
+    }
+    // print space to handle line less than 8 bytes
+    if (len < 8) printf(" ");
+    // fill hex gap with spaces if not full line
+    if (len < 16) {
+        gap = 16 - len;
+        for (i = 0; i < gap; i++) printf("   ");
+    }
+    printf("   ");
+    // ASCII (if printable)
+    ch = payload;
+    for(i = 0; i < len; i++) {
+        if (isprint(*ch)) printf("%c", *ch);
+        else printf(".");
+        ch++;
+    }
+    printf("\n");
+}
+// print packet payload data (avoid printing binary data)
+void print_payload(const uint8_t *payload, int len)
+{
+    int     len_rem = len;
+    int     line_width = 16;                // number of bytes per line
+    int     line_len;
+    int     offset = 0;                     // zero-based offset counter
+    const uint8_t *ch = payload;
+    if (len <= 0) return;
+    // data fits on one line
+    if (len <= line_width) {
+        print_hex_ascii_line(ch, len, offset);
+        return;
+    }
+    // data spans multiple lines
+    while(1) {
+        // compute current line length
+        line_len = line_width % len_rem;
+        // print line
+        print_hex_ascii_line(ch, line_len, offset);
+        // compute total remaining
+        len_rem = len_rem - line_len;
+        // shift pointer to remaining bytes to print
+        ch = ch + line_len;
+        // add offset
+        offset = offset + line_width;
+        // check if we have line width chars or less
+        if (len_rem <= line_width) {
+            // print last line and get out
+            print_hex_ascii_line(ch, len_rem, offset);
+            break;
+        }
+    }
 }
