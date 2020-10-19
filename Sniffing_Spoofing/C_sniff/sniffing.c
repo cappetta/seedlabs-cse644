@@ -21,7 +21,7 @@ int main()
     pcap_t      *handle;                            // packet capture handle
     char        errbuf[ETHER_ADDR_LEN];             // error buffer
     struct      bpf_program     fp;                 // compiled filter program (expression)
-    char        filter_exp[] = "ip proto \\icmp";   // filter expression
+    // char        filter_exp[] = "ip proto \\icmp";   // filter expression
     char        filter_exp[] = "proto \\TCP and dst portrange 20-100";   // filter expression
     bpf_u_int32 net;                                // IP
 
