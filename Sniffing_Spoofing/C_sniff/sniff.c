@@ -16,7 +16,11 @@ int main()
   bpf_u_int32 net;
 
   // Step 1: Open live pcap session on NIC with name enp0s3
-  handle = pcap_open_live("enp0s3", BUFSIZ, 1, 1000, errbuf); 
+  handle = pcap_open_live("ens33", BUFSIZ, 1, 1000, errbuf); 
+  if (handle != NULL) {
+    fprintf(stderr, "Can't open ens33: %s\n", errbuf);
+    exit(1);
+  }
 
   // Step 2: Compile filter_exp into BPF psuedo-code
   pcap_compile(handle, &fp, filter_exp, 0, net);              
