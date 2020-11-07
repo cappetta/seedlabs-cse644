@@ -1,0 +1,1 @@
+cmd_/home/seed/Desktop/labs/BookCode/Firewall/packet_filter/telnetFilter.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds --build-id  -o /home/seed/Desktop/labs/BookCode/Firewall/packet_filter/telnetFilter.ko /home/seed/Desktop/labs/BookCode/Firewall/packet_filter/telnetFilter.o /home/seed/Desktop/labs/BookCode/Firewall/packet_filter/telnetFilter.mod.o
